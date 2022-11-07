@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace API.Repository
 {
-    public class DivisionRepositories : IRepository<Division, int>
+    public class DivisionRepositories 
     {
         MyContext myContext;
 

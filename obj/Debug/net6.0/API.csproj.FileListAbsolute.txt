@@ -68,3 +68,10 @@ D:\MCC\API\bin\Debug\net6.0\Swashbuckle.AspNetCore.Swagger.dll
 D:\MCC\API\bin\Debug\net6.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 D:\MCC\API\bin\Debug\net6.0\Swashbuckle.AspNetCore.SwaggerUI.dll
 D:\MCC\API\obj\Debug\net6.0\API.MvcApplicationPartsAssemblyInfo.cs
+D:\MCC\API\bin\Debug\net6.0\System.Net.Http.Formatting.dll
+D:\MCC\API\bin\Debug\net6.0\Newtonsoft.Json.dll
+D:\MCC\API\bin\Debug\net6.0\Newtonsoft.Json.Bson.dll
+D:\MCC\API\obj\Debug\net6.0\API.RazorAssemblyInfo.cache
+D:\MCC\API\obj\Debug\net6.0\API.RazorAssemblyInfo.cs
+D:\MCC\API\bin\Debug\net6.0\BCrypt.Net-Core.dll
+D:\MCC\API\bin\Debug\net6.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll

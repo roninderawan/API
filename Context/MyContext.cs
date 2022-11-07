@@ -4,7 +4,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace API.Context
 {
-    public class MyContext : DbContext
+    public partial class MyContext : DbContext
     {
         public MyContext(DbContextOptions<MyContext> dbContextOptions) : base(dbContextOptions)
         {
@@ -15,5 +15,7 @@ namespace API.Context
         public DbSet<User> Users { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<Role> Roles { get; set; }
+
+        }
+      
     }
-}

@@ -1,10 +1,12 @@
-﻿using API.Context;
-using API.Models;
-using API.Repository;
-using API.Repository.Data;
-using Microsoft.AspNetCore.Http;
+﻿using API.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using API.Repository;
+using API.Repositories;
+using API.Models;
 
 namespace API.Controllers
 {
@@ -12,123 +14,347 @@ namespace API.Controllers
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private AccountRepositories accountRepositories;
-
-        public AccountController(AccountRepositories accountRepositories)
+        private readonly AccountRepositories accountRepositories;
+        private readonly IConfiguration _configuration;
+        private readonly ILogger<AccountController> _logger;
+        public AccountController(AccountRepositories accountRepositories, IConfiguration configuration, ILogger<AccountController> logger)
         {
             this.accountRepositories = accountRepositories;
+            _configuration = configuration;
+            _logger = logger;
         }
 
+        [Authorize]
         [HttpGet]
-        public ActionResult Login(string email, string password)
+        public ActionResult Get()
         {
+            var data = accountRepositories.Get();
             try
             {
-                
-                var log = accountRepositories.Login(email, password);
-                return log switch
+                if (data == null)
                 {
-                    1 => Ok(new
+                    return Ok(new
                     {
                         StatusCode = 200,
-                        Message = "Login Berhasil"
-                    }),
-                };
+                        Message = "Data Not Found "
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Data Found",
+                        Data = data
+                    });
+                }
             }
-
             catch (Exception ex)
             {
                 return BadRequest(new
                 {
                     StatusCode = 400,
-                    Message = "Login Gagal"
+                    Message = ex.Message
                 });
             }
+        }
 
+        [HttpGet("{Id}")]
+        public ActionResult GetById(int Id)
+        {
+            var data = accountRepositories.GetById(Id);
+            try
+            {
+                if (data == null)
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Data Not Found"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Data Found",
+                        Data = data
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
+            }
         }
 
         [HttpPost]
-        public ActionResult Register(LoginResponse loginResponse)
+        public ActionResult Create(User user)
         {
+            var data = accountRepositories.Create(user);
             try
             {
-                var reg = accountRepositories.Register(loginResponse);
-                return reg switch
+                if (data == null)
                 {
-                    1 => Ok(new
+                    return Ok(new
                     {
                         StatusCode = 200,
-                        Message = "Data Berhasil Masuk"
-                    }),
-                };
+                        Message = "Data Enter Failed"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Success",
+                        Data = data
+                    });
+                }
             }
-
             catch (Exception ex)
             {
                 return BadRequest(new
                 {
                     StatusCode = 400,
-                    Message = "Data Gagal Masuk"
+                    Message = ex.Message
                 });
             }
-
-
-
         }
 
         [HttpPut]
-        public ActionResult ChangePassword(string email, string password, string baru)
+        public ActionResult Update(User user)
         {
+            var data = accountRepositories.Update(user);
             try
             {
-                var reg = accountRepositories.ChangePassword(email, password, baru);
-                return reg switch
+                if (data == null)
                 {
-                    1 => Ok(new
+                    return Ok(new
                     {
                         StatusCode = 200,
-                        Message = "Data Berhasil diupdate",
-                        
-                    }),
-                };
+                        Message = "Data Not Updated"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Data Updated",
+                        Data = data
+                    });
+                }
             }
-
             catch (Exception ex)
             {
                 return BadRequest(new
                 {
                     StatusCode = 400,
-                    Message = "Data Gagal diupdate"
+                    Message = ex.Message
                 });
             }
-
         }
 
-        [HttpPut("ForgotPw")]
-        public ActionResult ForgotPassword(string email, string baru)
+        [HttpDelete]
+        public ActionResult Delete(int id)
         {
+            var data = accountRepositories.Delete(id);
             try
             {
-                var reg = accountRepositories.ForgotPassword(email, baru);
-                return reg switch
+                if (data == null)
                 {
-                    1 => Ok(new
+                    return Ok(new
                     {
                         StatusCode = 200,
-                        Message = "Data Berhasil diupdate",
-
-                    }),
-                };
+                        Message = "Data Gagal Dihapus"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Data Berhasil Dihapus",
+                        Data = data
+                    });
+                }
             }
-
             catch (Exception ex)
             {
                 return BadRequest(new
                 {
                     StatusCode = 400,
-                    Message = "Data Gagal diupdate"
+                    Message = ex.Message
                 });
             }
         }
+
+
+
+        [HttpPost("Register")]
+        public ActionResult Register(string fullname, string email, DateTime birthdate, string password)
+        {
+            var data = accountRepositories.Register(fullname, email, birthdate, password);
+
+            try
+            {
+                if (data == 0)
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Email sudah ada !"
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Berhasil",
+                        Data = data
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpPost("Login")]
+        public ActionResult Login(string email, string password)
+        {
+            var data = accountRepositories.Login(email, password);
+            try
+            {
+                if (data == 0)
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Login gagal",
+                    });
+                }
+                else
+                {
+                    string token = Token(email);
+                    return Ok(new
+                    {
+                        Message = "Login Berhasil",
+                        Data = data,
+                        token
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        private string Token(string email)
+        {
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Email,email)
+
+            };
+
+            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value));
+
+            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                 _configuration["Jwt:Issuer"],
+                 _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: cred
+                );
+
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+        }
+
+        [HttpPut("ChangePassword")]
+        public ActionResult ChangePassword(string pw, string password, string email)
+        {
+
+            var data = accountRepositories.ChangePassword(pw, password, email);
+            try
+            {
+                if (data == 0)
+                {
+                    return Ok(new { Message = "error" });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        Message = "Sukses",
+                        Data = data
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
+            }
+        }
+
+
+        [HttpPut("ForgotPassword")]
+        public ActionResult ForgotPassword(string fullName, string email, string birthDate, string newPassword)
+        {
+            var data = accountRepositories.ForgotPassword(fullName, email, birthDate, newPassword);
+            try
+            {
+                if (data == 0)
+                {
+                    return Ok(new 
+                    { 
+                        Message = "Gagal" 
+                    });
+                }
+                else
+                {
+                    return Ok(new
+                    {
+                        Message = "Sukses",
+                        Data = data
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
+            }
+        }
+
     }
 }

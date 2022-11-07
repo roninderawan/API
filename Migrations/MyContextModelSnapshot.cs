@@ -85,6 +85,78 @@ namespace API.Migrations
                     b.ToTable("Employees");
                 });
 
+            modelBuilder.Entity("API.Models.Karyawan", b =>
+                {
+                    b.Property<int>("EmployeeID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("EmployeeID"), 1L, 1);
+
+                    b.Property<DateTime>("BirthDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EmployeeName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Gender")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("HireDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("JobTitle")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LoginID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MaritalStatus")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("NationalIDNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("RowGuid")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<short>("SickLeaveHours")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("VacationHours")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("EmployeeID");
+
+                    b.ToTable("Karyawan", (string)null);
+                });
+
+            modelBuilder.Entity("API.Models.Pengguna", b =>
+                {
+                    b.Property<DateTime?>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Password")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable("Pengguna", (string)null);
+                });
+
             modelBuilder.Entity("API.Models.Role", b =>
                 {
                     b.Property<int>("Id")
