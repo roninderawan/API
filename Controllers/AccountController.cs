@@ -7,21 +7,22 @@ using System.Security.Claims;
 using API.Repository;
 using API.Repositories;
 using API.Models;
+using API.Handler;
 
 namespace API.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
     public class AccountController : ControllerBase
     {
+        private JWTConfig jwtConfig;
         private readonly AccountRepositories accountRepositories;
-        private readonly IConfiguration _configuration;
-        private readonly ILogger<AccountController> _logger;
-        public AccountController(AccountRepositories accountRepositories, IConfiguration configuration, ILogger<AccountController> logger)
+
+        public AccountController(JWTConfig jwtConfig, AccountRepositories accountRepositories)
         {
             this.accountRepositories = accountRepositories;
-            _configuration = configuration;
-            _logger = logger;
+            this.jwtConfig = jwtConfig;
         }
 
         [Authorize]
@@ -195,7 +196,42 @@ namespace API.Controllers
             }
         }
 
-
+        [AllowAnonymous]
+        [HttpPost("Login")]
+        public ActionResult Login(string email, string password)
+        {
+            var data = accountRepositories.Login(email, password);
+            try
+            {
+                if (data == null)
+                {
+                    return Ok(new
+                    {
+                        StatusCode = 200,
+                        Message = "Login gagal",
+                    });
+                }
+                else
+                {
+                    //JWTConfig jwt = new JWTConfig();
+                    string token = jwtConfig.Token(email, data.Role);
+                    return Ok(new
+                    {
+                        Message = "Login Berhasil",
+                        Data = data,
+                        token
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    StatusCode = 400,
+                    Message = ex.Message
+                });
+            }
+        }
 
         [HttpPost("Register")]
         public ActionResult Register(string fullname, string email, DateTime birthdate, string password)
@@ -232,67 +268,6 @@ namespace API.Controllers
             }
         }
 
-        [AllowAnonymous]
-        [HttpPost("Login")]
-        public ActionResult Login(string email, string password)
-        {
-            var data = accountRepositories.Login(email, password);
-            try
-            {
-                if (data == 0)
-                {
-                    return Ok(new
-                    {
-                        StatusCode = 200,
-                        Message = "Login gagal",
-                    });
-                }
-                else
-                {
-                    string token = Token(email);
-                    return Ok(new
-                    {
-                        Message = "Login Berhasil",
-                        Data = data,
-                        token
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new
-                {
-                    StatusCode = 400,
-                    Message = ex.Message
-                });
-            }
-        }
-
-        private string Token(string email)
-        {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Email,email)
-
-            };
-
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("Jwt:Key").Value));
-
-            var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                 _configuration["Jwt:Issuer"],
-                 _configuration["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: cred
-                );
-
-            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
-
-            return jwt;
-        }
-
         [HttpPut("ChangePassword")]
         public ActionResult ChangePassword(string pw, string password, string email)
         {
@@ -325,9 +300,9 @@ namespace API.Controllers
 
 
         [HttpPut("ForgotPassword")]
-        public ActionResult ForgotPassword(string fullName, string email, string birthDate, string newPassword)
+        public ActionResult ForgotPassword(string fullName, string email, string birthDate, string pwbaru)
         {
-            var data = accountRepositories.ForgotPassword(fullName, email, birthDate, newPassword);
+            var data = accountRepositories.ForgotPassword(fullName, email, birthDate, pwbaru);
             try
             {
                 if (data == 0)

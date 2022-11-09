@@ -1,23 +1,45 @@
 ﻿using API.Context;
 using API.Handler;
 using API.Models;
+using API.Repository;
 using API.Repository.Interface;
+using API.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace API.Repositories
 {
-    public class AccountRepositories : IRepository<User, int>
+    public class AccountRepositories : GeneralRepository<User>
+        
     {
         private readonly MyContext myContext;
 
-        public AccountRepositories(MyContext myContext)
+        public AccountRepositories(MyContext myContext) : base(myContext)
         {
             this.myContext = myContext;
         }
+
+        public ICollection<User> Get()
+        {
+            return myContext.Users.ToList();
+        }
+
+        public User GetById(int Id)
+        {
+            return myContext.Users.Find(Id);
+        }
+
         public int Create(User entity)
         {
             myContext.Users.Add(entity);
+            var data = myContext.SaveChanges();
+            return data;
+        }
+
+        public int Update(User entity)
+        {
+            myContext.Entry(entity).State = EntityState.Modified;
             var data = myContext.SaveChanges();
             return data;
         }
@@ -34,32 +56,35 @@ namespace API.Repositories
             return 0;
         }
 
-        public ICollection<User> Get()
+        public LoginResponse Login(string email, string password)
         {
-            return myContext.Users.ToList();
-        }
+            var data = myContext.Users.Include(x => x.Employee).Include(x => x.Roles)
+               .SingleOrDefault(x => x.Employee.Email == email);
 
-        public User GetById(int id)
-        {
-            return myContext.Users.Find(id);
-        }
+            if (data != null)
+            {
 
-        public int Update(User entity)
-        {
-            myContext.Entry(entity).State = EntityState.Modified;
-            var data = myContext.SaveChanges();
-            return data;
-        }
+                LoginResponse loginResponse = new LoginResponse()
+                {
+                    FullName = data.Employee.FullName,
+                    Email = data.Employee.Email,
+                    Role = data.Roles.Name
 
+                };
+                var validate = Hashing.ValidatePassword(password, data.Password);
+                if (validate == true)
+                    return loginResponse;
+            }
+
+            return null;
+        }
 
         public int Register(string fullname, string email, DateTime birthdate, string password)
         {
-
             if (myContext.Employees.Any(x => x.Email == email))
             {
                 return 0;
             }
-
             Employee employee = new Employee()
             {
                 FullName = fullname,
@@ -76,7 +101,7 @@ namespace API.Repositories
                 {
                     Id = id,
                     Password = Hashing.HashPassword(password),
-                    RoleId = 1
+                    RoleId = 2
                 };
 
                 myContext.Users.Add(user);
@@ -87,21 +112,6 @@ namespace API.Repositories
                 }
             }
             return 1;
-        }
-
-        public int Login(string email, string password)
-        {
-            var data = myContext.Users.Include(x => x.Employee).Include(x => x.Role)
-               .SingleOrDefault(x => x.Employee.Email == email);
-
-            if (data != null)
-            {
-                var vp = Hashing.ValidatePassword(password, data.Password);
-                if (vp == true)
-                    return 1;
-            }
-
-            return 0;
         }
 
         public int ChangePassword(string pw, string password, string email)
@@ -123,7 +133,7 @@ namespace API.Repositories
         }
 
 
-        public int ForgotPassword(string fullName, string email, string birthDate, string newPassword)
+        public int ForgotPassword(string fullName, string email, string birthDate, string pwbaru)
         {
             var data = myContext.Users
                           .Include(x => x.Employee)
@@ -136,7 +146,7 @@ namespace API.Repositories
 
                 User user = new User()
                 {
-                    Password = newPassword
+                    Password = pwbaru
                 };
 
                 data.Password = user.Password;

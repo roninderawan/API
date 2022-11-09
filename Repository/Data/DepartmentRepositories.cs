@@ -1,54 +1,23 @@
 ﻿using API.Context;
 using API.Models;
 using API.Repository.Interface;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Repository.Data
 {
-    public class DepartmentRepositories 
+    public class DepartmentRepositories : GeneralRepository <Department>
     {
         MyContext myContext;
 
-        public DepartmentRepositories(MyContext myContext)
+        public DepartmentRepositories(MyContext myContext) : base(myContext)
         {
             this.myContext = myContext;
         }
-        public IEnumerable<Department> Get()
+        [HttpGet("DepartmentName")]
+        public List<Department> Get(string name)
         {
-            var data = myContext.Departments.ToList();
-            return data;
-        }
-
-        public Department GetById(int Id)
-        {
-            var data = myContext.Departments.Find(Id);
-            return data;
-        }
-
-        public int Create(Department Entity)
-        {
-            myContext.Departments.Add(Entity);
-            var result = myContext.SaveChanges();
-            return result;
-        }
-
-        public int Update(Department Entity)
-        {
-            myContext.Entry(Entity).State = EntityState.Modified;
-            var result = myContext.SaveChanges();
-            return result;
-        }
-
-        public int Delete(int Id)
-        {
-            var data = myContext.Departments.Find(Id);
-            if (data != null)
-            {
-                myContext.Remove(data);
-                var result = myContext.SaveChanges();
-                return result;
-            }
-            return 0;
+            return myContext.Departments.Where(x => x.Name == name).ToList();
         }
     }
 }

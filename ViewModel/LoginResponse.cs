@@ -15,7 +15,7 @@ namespace API.ViewModel
         [JsonIgnore]
         public Role? role { get; set; }
 
-        public int Role { get; set; }
+        public string Role { get; set; }
 
         public DateTime BirthDate { get; set; }
     }

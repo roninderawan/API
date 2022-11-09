@@ -1,15 +1,16 @@
 ﻿namespace API.Repository.Interface
 {
-    public interface IRepository<Entity, Key> where Entity : class
+    public interface IRepository<Entity> where Entity : class
     {
 
-        public ICollection<Entity> Get();
-        public Entity GetById(Key id);
+        public IEnumerable<Entity> Get();
+
+        public Entity Get(int Id);
 
         public int Create(Entity entity);
 
         public int Update(Entity entity);
 
-        public int Delete(Key id);
+        public int Delete(int Id);
     }
 }
